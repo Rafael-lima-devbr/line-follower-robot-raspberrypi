@@ -141,8 +141,8 @@ try:
         follow_line(driver_r, driver_l, reading, pid, BASE_SPEED)
         print("-------------------------------------------------\n", flush=True)
 
-    except KeyboardInterrupt:
-        print("Stopping...", flush=True)
-    finally:
-        driver_r.stop()
-        driver_l.stop()
+except KeyboardInterrupt:
+    print("Stopping...", flush=True)
+finally:
+    driver_r.stop()
+    driver_l.stop()
