@@ -4,6 +4,8 @@ from odometry import Odometry
 from pid import PID
 from CommandDriver import LatestCommandDriver
 from line_functions import (
+    set_robot_context,
+    both_drivers_stop,
     is_clear_intersection,
     is_left_90_candidate,
     is_right_90_candidate,
@@ -14,14 +16,10 @@ from line_functions import (
     detect_color_marking,
     handle_left_candidate,
     handle_right_candidate,
-    handle_color_90_left,
-    handle_color_90_right,
-    handle_180,
     handle_color_marking,
     handle_intersection,
     handle_lost_line,
     handle_obstacle,
-    move_straight_for,
     try_cross_gap,
     update_odometry_motors,
     follow_line,
@@ -52,20 +50,23 @@ motors = Motors(right=motor_r, left=motor_l)
 driver_r = LatestCommandDriver(motor_r)
 driver_l = LatestCommandDriver(motor_l)
 
-pid = PID()
 odometry = Odometry()
+
+pid = PID()
+
+set_robot_context(driver_r, driver_l, motors, odometry)
 
 try:
     while True:
         reading = line_sensor.get_data()
         digital = reading["digital"]
-        update_odometry_motors(odometry, motors)
+        update_odometry_motors()
         color_r = color_sensor_r.get_color()
         color_l = color_sensor_l.get_color()
 
         if is_green(color_r) or is_green(color_l):
             print("Green detected", flush=True)
-            color_marking = detect_color_marking(driver_r, driver_l, color_sensor_r, color_sensor_l)
+            color_marking = detect_color_marking(color_sensor_r, color_sensor_l)
         else:
             color_marking = None
 
@@ -73,25 +74,25 @@ try:
             last_position = reading["position"]
 
         if is_obstacle(distance_sensor):
-            handle_obstacle(driver_r, driver_l, motors, odometry)
+            handle_obstacle(line_sensor)
             print("-------------------------------------------------\n", flush=True)
             continue
 
-        if handle_color_marking(color_marking, driver_r, driver_l, motors, odometry):
+        if handle_color_marking(color_marking):
             print("-------------------------------------------------\n", flush=True)
             continue
 
         if is_clear_intersection(digital):
             print("Intersection detected", flush=True)
 
-            color_marking = detect_color_marking(driver_r, driver_l, color_sensor_r, color_sensor_l)
+            color_marking = detect_color_marking(color_sensor_r, color_sensor_l)
 
-            if handle_color_marking(color_marking, driver_r, driver_l, motors, odometry):
+            if handle_color_marking(color_marking):
                 print("Color marking handled after intersection", flush=True)
                 print("-------------------------------------------------\n", flush=True)
                 continue
 
-            handle_intersection(driver_r, driver_l, motors, odometry)
+            handle_intersection()
             print("Handling intersection", flush=True)
             print("-------------------------------------------------\n", flush=True)
             continue
@@ -99,50 +100,48 @@ try:
         if is_left_90_candidate(digital):
             print("Left 90 candidate detected", flush=True)
 
-            color_marking = detect_color_marking(driver_r, driver_l, color_sensor_r, color_sensor_l)
+            color_marking = detect_color_marking(color_sensor_r, color_sensor_l)
 
-            if handle_color_marking(color_marking, driver_r, driver_l, motors, odometry):
+            if handle_color_marking(color_marking):
                 print("Color marking handled after intersection", flush=True)
                 print("-------------------------------------------------\n", flush=True)
                 continue
 
-            handle_left_candidate(driver_r, driver_l, motors, line_sensor, odometry)
+            handle_left_candidate(line_sensor)
             print("-------------------------------------------------\n", flush=True)
             continue
 
         if is_right_90_candidate(digital):
             print("Right 90 candidate detected", flush=True)
 
-            color_marking = detect_color_marking(driver_r, driver_l, color_sensor_r, color_sensor_l)
+            color_marking = detect_color_marking(color_sensor_r, color_sensor_l)
 
-            if handle_color_marking(color_marking, driver_r, driver_l, motors, odometry):
+            if handle_color_marking(color_marking):
                 print("Color marking handled after intersection", flush=True)
                 print("-------------------------------------------------\n", flush=True)
                 continue
 
-            handle_right_candidate(driver_r, driver_l, motors, line_sensor, odometry)
+            handle_right_candidate(line_sensor)
             print("-------------------------------------------------\n", flush=True)
             continue
 
         if is_gap(reading):
-            gap_found = try_cross_gap(driver_r, driver_l, motors, line_sensor, odometry)
+            gap_found = try_cross_gap(line_sensor)
 
             if not gap_found:
-                handle_lost_line(driver_r, driver_l, motors, line_sensor, last_position, odometry)
+                handle_lost_line(line_sensor, last_position)
 
             continue
 
         if is_red(color_r) and is_red(color_l):
             print("Red detected, stopping...", flush=True)
-            driver_r.stop()
-            driver_l.stop()
+            both_drivers_stop()
             break
 
-        follow_line(driver_r, driver_l, reading, pid, BASE_SPEED)
+        follow_line(reading, pid, BASE_SPEED)
         print("-------------------------------------------------\n", flush=True)
 
 except KeyboardInterrupt:
     print("Stopping...", flush=True)
 finally:
-    driver_r.stop()
-    driver_l.stop()
+    both_drivers_stop()
