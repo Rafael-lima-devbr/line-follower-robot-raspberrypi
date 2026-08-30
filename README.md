@@ -14,19 +14,6 @@ This project represents my personal exploration of a more advanced and odometry-
 
 ---
 
-# Author
-
-**Rafael Lima Ribeiro dos Santos**
-
-Industrial Automation Student — IFBA  
-Captain of Team LOGOS — OBR 2026
-
-GitHub:
-
-https://github.com/Rafael-lima-devbr
-
----
-
 # Motivation
 
 One of the challenges in autonomous robotics is performing movements such as rotations and controlled straight motion consistently.
