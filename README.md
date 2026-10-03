@@ -4,6 +4,8 @@ Personal Python robotics project focused on **PID line following, differential-d
 
 **Status:** Experimental / under development
 
+<!-- MEDIA: Adicione aqui uma foto ou GIF curto do robô seguindo a linha. Idealmente, use uma imagem que mostre o robô inteiro e a pista. -->
+
 This repository explores an odometry-oriented navigation architecture for an autonomous line-following robot. It was developed during the same period as my participation in Team LOGOS and OBR 2026, but it is **not the competition software used by Team LOGOS**.
 
 ## Highlights
@@ -42,6 +44,8 @@ PID line following   Special maneuvers
    Estimated pose (x, y, theta)
 ```
 
+<!-- MEDIA: Se você fizer um diagrama visual da arquitetura, substitua ou complemente o diagrama em texto aqui. -->
+
 The current program connects to two traction motors, one line sensor, one distance sensor and two color sensors through Open-RDK.
 
 ## PID Line Following
@@ -71,6 +75,8 @@ The estimated pose contains:
 For turns, the program stores the initial orientation, commands opposite wheel speeds and updates odometry until the estimated angular displacement reaches the target.
 
 This allows some rotations to be expressed in terms of estimated movement rather than relying exclusively on a predetermined duration.
+
+<!-- MEDIA: Um vídeo/GIF curto de uma rotação de 90° ou 180° baseada em odometria fica bem aqui. -->
 
 ## Navigation Logic
 
